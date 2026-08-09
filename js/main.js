@@ -208,9 +208,11 @@
 		}
 	};
 
-	// Parallax
+	// Parallax (desktop only — breaks hero centering on mobile)
 	var parallax = function() {
-		$(window).stellar();
+		if ($(window).width() > 768) {
+			$(window).stellar();
+		}
 	};
 
 	
