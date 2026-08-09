@@ -1870,10 +1870,28 @@ form label {
 }
 
 /* Wedding theme fonts */
-.fh5co-cover .display-tc h2,
-.couple-half h3 {
-  font-family: "Sacramento", cursive;
+.couple-half h3,
+#fh5co-header .display-tc h2 {
+  font-family: "Angella White Personal use font", "Arapey", Georgia, serif;
   font-weight: normal;
+}
+
+#fh5co-header .display-tc h2 {
+  font-size: 38px;
+  line-height: 1.35;
+  margin-bottom: 30px;
+}
+
+@media screen and (max-width: 768px) {
+  #fh5co-header .display-tc h2 {
+    font-size: 30px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  #fh5co-header .display-tc h2 {
+    font-size: 24px;
+  }
 }
 
 #fh5co-couple .fh5co-heading h3,
