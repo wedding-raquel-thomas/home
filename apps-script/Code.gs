@@ -19,8 +19,16 @@ var CONFIG = {
   PIX_CHAVE: '+5562999433035',
   PIX_NOME: 'RAQUEL E TOM',
   PIX_CIDADE: 'SAO PAULO',
-  ADMIN_SENHA: 'troque-esta-senha'
+  ADMIN_SENHA: 'troque-esta-senha',
+  SPREADSHEET_ID: '1NBA3DBsZTyXVqUqsgbMcs8DB4VydK1OMMqewypaq0qs'
 };
+
+function getSpreadsheet() {
+  if (CONFIG.SPREADSHEET_ID) {
+    return SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+  }
+  return SpreadsheetApp.getActiveSpreadsheet();
+}
 
 var SHEET_NUMEROS = 'numeros';
 var SHEET_PEDIDOS = 'pedidos';
@@ -28,7 +36,7 @@ var SHEET_RESPOSTAS = 'respostas';
 var FOLDER_NAME = 'Rifa Comprovantes';
 
 function setupRifa() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet();
   var numeros = ss.getSheetByName(SHEET_NUMEROS);
   if (!numeros) {
     numeros = ss.insertSheet(SHEET_NUMEROS);
@@ -122,7 +130,7 @@ function dispatch(data, method) {
 }
 
 function ensureSheets() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet();
   if (!ss.getSheetByName(SHEET_NUMEROS) || !ss.getSheetByName(SHEET_PEDIDOS) || !ss.getSheetByName(SHEET_RESPOSTAS)) {
     if (!ss.getSheetByName(SHEET_NUMEROS) || !ss.getSheetByName(SHEET_PEDIDOS)) {
       setupRifa();
@@ -135,7 +143,7 @@ function ensureSheets() {
 }
 
 function getSheets() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet();
   return {
     numeros: ss.getSheetByName(SHEET_NUMEROS),
     pedidos: ss.getSheetByName(SHEET_PEDIDOS)
@@ -298,7 +306,7 @@ function actionConsultarRequest(requestId) {
 
 function saveResposta_(requestId, result) {
   if (!requestId) return result;
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_RESPOSTAS);
+  var sh = getSpreadsheet().getSheetByName(SHEET_RESPOSTAS);
   if (!sh) return result;
   sh.appendRow([requestId, JSON.stringify(result), new Date()]);
   return result;
@@ -306,7 +314,7 @@ function saveResposta_(requestId, result) {
 
 function readResposta_(requestId) {
   if (!requestId) return null;
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_RESPOSTAS);
+  var sh = getSpreadsheet().getSheetByName(SHEET_RESPOSTAS);
   if (!sh) return null;
   var data = sh.getDataRange().getValues();
   for (var i = data.length - 1; i >= 1; i--) {

@@ -31,7 +31,7 @@
       script.src = SCRIPT_URL + (SCRIPT_URL.indexOf('?') === -1 ? '?' : '&') + q.toString();
       script.onerror = function () {
         cleanup();
-        reject(new Error('Não falou com o sistema.'));
+        reject(new Error('Google ainda não liberou o sistema. Abra o link abaixo com willkulminare@gmail.com, clique em Permitir, e tente de novo.'));
       };
       document.body.appendChild(script);
     });
@@ -148,6 +148,10 @@
   }
 
   function init() {
+    var liberar = $('link-liberar');
+    if (liberar && SCRIPT_URL) {
+      liberar.href = SCRIPT_URL + '?action=status';
+    }
     if (!SCRIPT_URL) {
       $('login').classList.add('is-hidden');
       $('painel').classList.add('is-hidden');
