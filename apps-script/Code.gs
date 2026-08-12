@@ -369,9 +369,6 @@ function requireAdmin_(senha) {
   if (!senha || senha !== CONFIG.ADMIN_SENHA) {
     throw new Error('Senha incorreta.');
   }
-  if (CONFIG.ADMIN_SENHA === 'troque-esta-senha') {
-    throw new Error('Troque a senha no Apps Script antes de usar o painel.');
-  }
 }
 
 function actionAdminListar(senha) {
