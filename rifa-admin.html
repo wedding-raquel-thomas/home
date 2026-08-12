@@ -7,11 +7,12 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="robots" content="noindex, nofollow">
 	<link href="https://fonts.googleapis.com/css?family=Work+Sans:400,300,600,400italic,700" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Arapey:ital@0;1&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="css/bootstrap.css">
 	<link rel="stylesheet" href="css/style.css">
 	<link rel="stylesheet" href="css/rifa.css">
 	</head>
-	<body>
+	<body class="rifa-admin">
 	<div id="page">
 	<nav class="fh5co-nav" role="navigation">
 		<div class="container">
@@ -26,7 +27,7 @@
 	<div class="rifa-page">
 		<div class="container">
 			<div class="row">
-				<div class="col-md-8 col-md-offset-2">
+				<div class="col-md-10 col-md-offset-1">
 					<div id="admin-msg" class="is-hidden"></div>
 
 					<div id="login" class="rifa-card">
@@ -43,10 +44,16 @@
 
 					<div id="painel" class="is-hidden">
 						<div class="rifa-card">
-							<p id="resumo"></p>
-							<button type="button" id="btn-atualizar" class="btn btn-primary btn-sm">Atualizar</button>
+							<div class="admin-head">
+								<h3>Resumo</h3>
+								<button type="button" id="btn-atualizar" class="btn btn-primary btn-sm">Atualizar</button>
+							</div>
+							<ul id="resumo" class="rifa-stats"></ul>
 						</div>
-						<div id="lista"></div>
+						<div class="rifa-card">
+							<h3>Pedidos</h3>
+							<div id="lista"></div>
+						</div>
 					</div>
 				</div>
 			</div>

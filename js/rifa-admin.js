@@ -81,14 +81,14 @@
   function render(res) {
     var r = res.resumo || {};
     $('resumo').innerHTML =
-      '<strong>' + (r.vendidos || 0) + '</strong> vendidos · ' +
-      '<strong>' + (r.reservados || 0) + '</strong> reservados · ' +
-      '<strong>' + (r.disponiveis || 0) + '</strong> livres';
+      '<li><strong>' + (r.vendidos || 0) + '</strong> vendidos</li>' +
+      '<li><strong>' + (r.reservados || 0) + '</strong> reservados</li>' +
+      '<li><strong>' + (r.disponiveis || 0) + '</strong> livres</li>';
 
     var list = $('lista');
     var pedidos = res.pedidos || [];
     if (!pedidos.length) {
-      list.innerHTML = '<p>Nenhum pedido ainda.</p>';
+      list.innerHTML = '<div class="empty-state"><p>Nenhum pedido ainda.</p><p class="muted">Quando alguém comprar, o pedido aparece aqui para você aprovar.</p></div>';
       return;
     }
     list.innerHTML = pedidos.map(function (p) {
