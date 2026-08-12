@@ -356,13 +356,20 @@ function saveComprovante_(pedidoId, dataUrl) {
   var folder = getComprovantesFolder_();
   var file = folder.createFile(blob);
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  return file.getUrl();
+  return 'https://drive.google.com/file/d/' + file.getId() + '/view';
 }
 
 function getComprovantesFolder_() {
-  var it = DriveApp.getFoldersByName(FOLDER_NAME);
-  if (it.hasNext()) return it.next();
-  return DriveApp.createFolder(FOLDER_NAME);
+  var props = PropertiesService.getScriptProperties();
+  var folderId = props.getProperty('COMPROVANTES_FOLDER_ID');
+  if (folderId) {
+    try {
+      return DriveApp.getFolderById(folderId);
+    } catch (err) {}
+  }
+  var folder = DriveApp.createFolder(FOLDER_NAME);
+  props.setProperty('COMPROVANTES_FOLDER_ID', folder.getId());
+  return folder;
 }
 
 function requireAdmin_(senha) {

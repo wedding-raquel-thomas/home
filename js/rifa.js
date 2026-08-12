@@ -68,8 +68,8 @@
   async function postAndWait(payload, lookup) {
     await postNoCors(payload);
     var last = null;
-    for (var i = 0; i < 16; i++) {
-      await sleep(700);
+    for (var i = 0; i < 24; i++) {
+      await sleep(900);
       last = await lookup();
       if (last && last.ok && !last.pending) return last;
       if (last && last.ok === false && last.error) return last;
@@ -283,7 +283,13 @@
       var dataUrl = await compressImage(file);
       var res = await postAndWait(
         { action: 'enviarComprovante', pedidoId: local.id, comprovante: dataUrl },
-        function () { return jsonp({ action: 'consultar', pedidoId: local.id }); }
+        function () {
+          return jsonp({ action: 'consultar', pedidoId: local.id }).then(function (r) {
+            if (!r || !r.ok) return r;
+            if (r.pedido && (r.pedido.status === 'aguardando_aprovacao' || r.pedido.status === 'pago')) return r;
+            return { ok: true, pending: true };
+          });
+        }
       );
       if (!res.ok || !res.pedido) throw new Error((res && res.error) || 'Falha ao enviar.');
       renderPedido(res.pedido);
