@@ -1,0 +1,175 @@
+.rifa-page {
+  padding: 4em 0 5em;
+  background: linear-gradient(180deg, #faf7f4 0%, #f3ede8 100%);
+  min-height: 70vh;
+}
+
+.rifa-card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 4px 24px rgba(121, 46, 14, 0.08);
+  padding: 2em;
+  margin-bottom: 2em;
+}
+
+.rifa-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+  margin: 0 0 1.5em;
+  padding: 0;
+  list-style: none;
+}
+
+.rifa-stats li {
+  background: #faf7f4;
+  border-radius: 10px;
+  padding: 0.8em 1.2em;
+  color: #792e0e;
+}
+
+.rifa-stats strong {
+  display: block;
+  font-size: 1.4em;
+  color: #000;
+}
+
+.is-hidden {
+  display: none !important;
+}
+
+#rifa-error,
+#admin-msg {
+  background: #fde8e8;
+  color: #8a1f11;
+  padding: 0.8em 1em;
+  border-radius: 8px;
+  margin-bottom: 1em;
+}
+
+#admin-msg:not(.is-error) {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.rifa-form .form-group {
+  margin-bottom: 1.2em;
+}
+
+.rifa-form label {
+  display: block;
+  color: #000;
+  margin-bottom: 0.3em;
+}
+
+.rifa-total {
+  font-size: 1.3em;
+  color: #792e0e;
+  margin: 0.5em 0 1em;
+}
+
+.pix-box {
+  text-align: center;
+}
+
+#pix-qr {
+  display: inline-block;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #eee;
+  margin-bottom: 1em;
+}
+
+#pix-copia {
+  width: 100%;
+  font-size: 12px;
+  word-break: break-all;
+  margin-bottom: 0.8em;
+}
+
+.rifa-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+  gap: 4px;
+  max-height: 420px;
+  overflow: auto;
+  padding: 8px;
+  background: #fff;
+  border-radius: 10px;
+}
+
+.rifa-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  font-size: 11px;
+  border-radius: 4px;
+  background: #f3ede8;
+  color: #333;
+}
+
+.rifa-num.is-sold {
+  background: #d9d3ce;
+  color: #888;
+  text-decoration: line-through;
+}
+
+.rifa-num.is-mine {
+  background: #792e0e;
+  color: #fff;
+  font-weight: 700;
+}
+
+.pedido-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.2em;
+  margin-bottom: 1em;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.pedido-card.status-aguardando_aprovacao {
+  border-left: 4px solid #c47b2b;
+}
+
+.pedido-card.status-pago {
+  border-left: 4px solid #2e7d32;
+}
+
+.pedido-card.status-pendente {
+  border-left: 4px solid #888;
+}
+
+.comprovante-img {
+  max-width: 100%;
+  max-height: 280px;
+  margin: 0.5em 0;
+  border-radius: 8px;
+}
+
+.pedido-actions {
+  margin-top: 0.8em;
+}
+
+.btn-sm {
+  padding: 8px 16px !important;
+  font-size: 14px !important;
+}
+
+.muted {
+  color: #888;
+}
+
+.numeros-finais {
+  font-size: 1.6em;
+  color: #792e0e;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 768px) {
+  .rifa-card {
+    padding: 1.2em;
+  }
+}

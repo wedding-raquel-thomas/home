@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html class="no-js">
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Painel da rifa | Raquel e Tom</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="robots" content="noindex, nofollow">
+	<link href="https://fonts.googleapis.com/css?family=Work+Sans:400,300,600,400italic,700" rel="stylesheet">
+	<link rel="stylesheet" href="css/bootstrap.css">
+	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/rifa.css">
+	</head>
+	<body>
+	<div id="page">
+	<nav class="fh5co-nav" role="navigation">
+		<div class="container">
+			<div class="row">
+				<div class="col-xs-12">
+					<div id="fh5co-logo"><a href="index.html">R&amp;T</a> · Painel da rifa</div>
+				</div>
+			</div>
+		</div>
+	</nav>
+
+	<div class="rifa-page">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-8 col-md-offset-2">
+					<div id="admin-msg" class="is-hidden"></div>
+
+					<div id="login" class="rifa-card">
+						<h3>Entrar</h3>
+						<form id="form-login">
+							<div class="form-group">
+								<label for="senha">Senha</label>
+								<input class="form-control" id="senha" type="password" required>
+							</div>
+							<button type="submit" class="btn btn-primary">Abrir painel</button>
+						</form>
+					</div>
+
+					<div id="painel" class="is-hidden">
+						<div class="rifa-card">
+							<p id="resumo"></p>
+							<button type="button" id="btn-atualizar" class="btn btn-primary btn-sm">Atualizar</button>
+						</div>
+						<div id="lista"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	</div>
+
+	<script src="js/rifa-config.js"></script>
+	<script src="js/rifa-admin.js"></script>
+	</body>
+</html>

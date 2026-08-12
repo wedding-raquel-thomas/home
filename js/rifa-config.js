@@ -1,0 +1,5 @@
+window.RIFA_CONFIG = {
+  SCRIPT_URL: '',
+  PRECO: 20,
+  MAX_POR_PEDIDO: 20
+};

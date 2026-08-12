@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html class="no-js">
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Rifa | Casamento Raquel e Tom</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="https://fonts.googleapis.com/css?family=Work+Sans:400,300,600,400italic,700" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Arapey:ital@0;1&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="css/animate.css">
+	<link rel="stylesheet" href="css/icomoon.css">
+	<link rel="stylesheet" href="css/bootstrap.css">
+	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/rifa.css">
+	<script src="js/modernizr-2.6.2.min.js"></script>
+	</head>
+	<body>
+	<div id="page">
+	<nav class="fh5co-nav" role="navigation">
+		<div class="container">
+			<div class="row">
+				<div class="col-xs-2">
+					<div id="fh5co-logo"><a href="index.html">R&amp;T</a></div>
+				</div>
+			</div>
+		</div>
+	</nav>
+
+	<header id="fh5co-header" class="fh5co-cover" role="banner" style="background-image:url(images/pre_wedding_capa_site%202.jpg); height: 280px;">
+		<div class="overlay"></div>
+		<div class="container">
+			<div class="row">
+				<div class="col-md-8 col-md-offset-2 text-center">
+					<div class="display-t" style="height: 280px;">
+						<div class="display-tc animate-box" data-animate-effect="fadeIn" style="height: 280px;">
+							<h1>Rifa</h1>
+							<h2>Raquel &amp; Tom</h2>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</header>
+
+	<div class="rifa-page">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-8 col-md-offset-2">
+					<ul class="rifa-stats">
+						<li><strong id="stat-preco">R$ 20,00</strong> por número</li>
+						<li><strong id="stat-vendidos">—</strong> vendidos</li>
+						<li><strong id="stat-disponiveis">500</strong> disponíveis</li>
+					</ul>
+
+					<div id="rifa-error" class="is-hidden"></div>
+
+					<div id="step-setup" class="rifa-card is-hidden">
+						<h3>Rifa ainda não ligada</h3>
+						<p>Falta colar a URL do Google Apps Script em <code>js/rifa-config.js</code>. Veja o arquivo <code>apps-script/COMO-PUBLICAR.txt</code>.</p>
+					</div>
+
+					<div id="step-form" class="rifa-card">
+						<h3>Comprar números</h3>
+						<p>Cada número custa R$ 20. Você escolhe quantos quer. Os números só ficam seus depois que o pagamento for confirmado.</p>
+						<form id="form-rifa" class="rifa-form">
+							<div class="form-group">
+								<label for="nome">Seu nome</label>
+								<input class="form-control" id="nome" name="nome" type="text" required maxlength="80" placeholder="Nome completo">
+							</div>
+							<div class="form-group">
+								<label for="quantidade">Quantos números</label>
+								<input class="form-control" id="quantidade" name="quantidade" type="number" required min="1" max="20" value="1">
+							</div>
+							<p class="rifa-total">Total: <strong id="total-valor">R$ 20,00</strong></p>
+							<button type="submit" id="btn-gerar" class="btn btn-primary">Gerar pagamento</button>
+						</form>
+					</div>
+
+					<div id="step-pay" class="rifa-card is-hidden">
+						<h3>Pague o PIX</h3>
+						<p>Pedido <strong id="pedido-id"></strong> · <span id="pedido-status"></span></p>
+						<p>Valor: <strong id="pedido-valor"></strong></p>
+						<p>Os números ficam reservados por 30 minutos. Depois do PIX, envie o comprovante.</p>
+						<div class="pix-box">
+							<div id="pix-qr"></div>
+							<textarea id="pix-copia" class="form-control" rows="4" readonly></textarea>
+							<button type="button" id="btn-copiar" class="btn btn-primary">Copiar código PIX</button>
+						</div>
+						<hr>
+						<div class="form-group">
+							<label for="comprovante">Foto do comprovante</label>
+							<input class="form-control" id="comprovante" type="file" accept="image/*">
+						</div>
+						<button type="button" id="btn-comprovante" class="btn btn-primary">Enviar comprovante</button>
+					</div>
+
+					<div id="step-wait" class="rifa-card is-hidden">
+						<h3>Comprovante enviado</h3>
+						<p>Recebemos. Assim que confirmarmos o pagamento, seus números aparecem aqui. Pode deixar esta página aberta ou voltar depois.</p>
+						<button type="button" id="btn-novo" class="btn btn-primary btn-outline">Fazer outro pedido</button>
+					</div>
+
+					<div id="step-done" class="rifa-card is-hidden">
+						<h3>Seus números</h3>
+						<p class="numeros-finais" id="numeros-finais"></p>
+						<p>Guarde esta tela. Pagamento confirmado.</p>
+						<button type="button" id="btn-novo-2" class="btn btn-primary">Comprar mais</button>
+					</div>
+
+					<div class="rifa-card">
+						<h3>Números</h3>
+						<p>Cinza = vendido. Marrom = seus números (depois da confirmação).</p>
+						<div id="rifa-board" class="rifa-board"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<footer id="fh5co-footer" role="contentinfo">
+		<div class="container">
+			<div class="row copyright">
+				<div class="col-md-12 text-center">
+					<p>
+						<small class="block">&copy; Casamento Raquel &amp; Tom</small>
+						<small class="block"><a href="index.html">Voltar ao site</a></small>
+					</p>
+				</div>
+			</div>
+		</div>
+	</footer>
+	</div>
+
+	<script src="js/qrcode.min.js"></script>
+	<script src="js/rifa-config.js"></script>
+	<script src="js/rifa.js"></script>
+	</body>
+</html>

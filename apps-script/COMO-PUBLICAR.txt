@@ -1,0 +1,31 @@
+RIFA — como ligar a planilha (uma vez só)
+
+1. Abra Google Planilhas e crie uma planilha nova. Nome: Rifa Casamento.
+
+2. Menu Extensões > Apps Script.
+
+3. Apague o código que aparecer. Cole o conteúdo de Code.gs.
+
+4. No topo do código, troque:
+   ADMIN_SENHA: 'troque-esta-senha'
+   por uma senha só sua.
+
+5. Salve (disquete). No menu de funções, escolha setupRifa. Clique em Executar.
+   Autorize a conta Google quando pedir.
+
+6. Implantar > Nova implantação.
+   Tipo: App da Web
+   Executar como: Eu
+   Quem tem acesso: Qualquer pessoa
+   Clique em Implantar. Copie a URL (termina com /exec).
+
+7. No site, abra js/rifa-config.js e cole a URL em SCRIPT_URL.
+
+8. Painel para aprovar pagamentos:
+   .../rifa-admin.html
+   Entre com a senha do passo 4.
+
+9. Se mudar o código do Apps Script depois: Implantar > Gerenciar implantações > lápis > Nova versão.
+
+Chave PIX usada: +5562999433035 (celular 62 99943-3035).
+Se o banco cadastrou a chave de outro jeito, troque PIX_CHAVE no Code.gs e publique de novo.
