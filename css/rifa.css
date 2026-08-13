@@ -107,6 +107,21 @@
   border-radius: 4px;
   background: #f3ede8;
   color: #333;
+  border: 1px solid transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.rifa-num:hover:not(:disabled) {
+  border-color: #792e0e;
+  color: #792e0e;
+}
+
+.rifa-num.is-sold,
+.rifa-num.is-reserved,
+.rifa-num.is-mine,
+.rifa-num:disabled {
+  cursor: default;
 }
 
 .rifa-num.is-sold {
@@ -115,10 +130,27 @@
   text-decoration: line-through;
 }
 
+.rifa-num.is-reserved {
+  background: #e8d9c8;
+  color: #8a6a4a;
+}
+
+.rifa-num.is-picked {
+  background: #fff;
+  border: 2px solid #792e0e;
+  color: #792e0e;
+  font-weight: 700;
+}
+
 .rifa-num.is-mine {
   background: #792e0e;
   color: #fff;
   font-weight: 700;
+}
+
+#btn-limpar {
+  margin-right: 8px;
+  margin-bottom: 8px;
 }
 
 .pedido-card {

@@ -61,24 +61,23 @@
 
 					<div id="step-form" class="rifa-card">
 						<h3>Comprar números</h3>
-						<p>Cada número custa R$ 20. Você escolhe quantos quer. Os números só ficam seus depois que o pagamento for confirmado.</p>
+						<p>Cada número custa R$ 20. Clique na grade abaixo nos números que quer (até 20). Os números só ficam seus depois que o pagamento for confirmado.</p>
 						<form id="form-rifa" class="rifa-form">
 							<div class="form-group">
 								<label for="nome">Seu nome</label>
 								<input class="form-control" id="nome" name="nome" type="text" required maxlength="80" placeholder="Nome completo">
 							</div>
-							<div class="form-group">
-								<label for="quantidade">Quantos números</label>
-								<input class="form-control" id="quantidade" name="quantidade" type="number" required min="1" max="20" value="1">
-							</div>
-							<p class="rifa-total">Total: <strong id="total-valor">R$ 20,00</strong></p>
-							<button type="submit" id="btn-gerar" class="btn btn-primary">Gerar pagamento</button>
+							<p>Escolhidos: <strong id="qtd-escolhida">0</strong> · <span id="escolhidos-texto">nenhum ainda</span></p>
+							<p class="rifa-total">Total: <strong id="total-valor">R$ 0,00</strong></p>
+							<button type="button" id="btn-limpar" class="btn btn-primary btn-outline">Limpar escolha</button>
+							<button type="submit" id="btn-gerar" class="btn btn-primary" disabled>Gerar pagamento</button>
 						</form>
 					</div>
 
 					<div id="step-pay" class="rifa-card is-hidden">
 						<h3>Pague o PIX</h3>
 						<p>Pedido <strong id="pedido-id"></strong> · <span id="pedido-status"></span></p>
+						<p>Números: <strong id="pedido-escolhidos"></strong></p>
 						<p>Valor: <strong id="pedido-valor"></strong></p>
 						<p>Os números ficam reservados por 30 minutos. Depois do PIX, envie o comprovante.</p>
 						<div class="pix-box">
@@ -107,9 +106,9 @@
 						<button type="button" id="btn-novo-2" class="btn btn-primary">Comprar mais</button>
 					</div>
 
-					<div class="rifa-card">
+					<div id="board-card" class="rifa-card is-picking">
 						<h3>Números</h3>
-						<p>Cinza = vendido (de qualquer pessoa). Marrom = só os seus, neste celular, depois da confirmação. Outra pessoa não vê o marrom — para ela esses números ficam cinza. Quem comprou o quê aparece no painel e na planilha, com o nome.</p>
+						<p>Clique para escolher. Cinza = vendido. Bege escuro = reservado por outra pessoa. Contorno marrom = sua escolha agora. Marrom cheio = seus números já confirmados, só neste celular.</p>
 						<div id="rifa-board" class="rifa-board"></div>
 					</div>
 				</div>

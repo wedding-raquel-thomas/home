@@ -73,6 +73,7 @@
 
   function drivePreview(url) {
     if (!url) return '';
+    if (String(url).indexOf('data:image/') === 0) return url;
     var m = String(url).match(/\/d\/([a-zA-Z0-9_-]+)/);
     if (m) return 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w800';
     return url;
@@ -98,9 +99,12 @@
           '<button class="btn btn-primary btn-sm" data-act="aprovar" data-id="' + p.id + '">Aprovar</button> ' +
           '<button class="btn btn-outline btn-sm" data-act="recusar" data-id="' + p.id + '">Recusar</button>';
       }
-      var img = p.comprovanteUrl
-        ? '<p><a href="' + p.comprovanteUrl + '" target="_blank" rel="noopener">Ver comprovante</a></p>' +
-          '<img class="comprovante-img" alt="Comprovante" src="' + drivePreview(p.comprovanteUrl) + '">'
+      var preview = drivePreview(p.comprovanteUrl);
+      var img = preview
+        ? (String(p.comprovanteUrl).indexOf('data:') === 0
+          ? '<img class="comprovante-img" alt="Comprovante" src="' + preview + '">'
+          : '<p><a href="' + p.comprovanteUrl + '" target="_blank" rel="noopener">Ver comprovante</a></p>' +
+            '<img class="comprovante-img" alt="Comprovante" src="' + preview + '">')
         : '<p class="muted">Sem comprovante</p>';
       return (
         '<article class="pedido-card status-' + p.status + '">' +

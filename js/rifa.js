@@ -4,8 +4,12 @@
   var PRECO = cfg.PRECO || 20;
   var MAX = cfg.MAX_POR_PEDIDO || 20;
   var STORAGE_KEY = 'rifaPedidoAtual';
+  var PICKS_KEY = 'rifaPicks';
   var qrcode = null;
   var pollTimer = null;
+  var selected = {};
+  var lastStatus = { vendidosLista: [], reservadosLista: [] };
+  var pickingEnabled = true;
 
   function $(id) {
     return document.getElementById(id);
@@ -13,6 +17,10 @@
 
   function money(n) {
     return 'R$ ' + Number(n).toFixed(2).replace('.', ',');
+  }
+
+  function selectedList() {
+    return Object.keys(selected).map(Number).sort(function (a, b) { return a - b; });
   }
 
   function uuid() {
@@ -68,7 +76,7 @@
   async function postAndWait(payload, lookup) {
     await postNoCors(payload);
     var last = null;
-    for (var i = 0; i < 24; i++) {
+    for (var i = 0; i < 40; i++) {
       await sleep(900);
       last = await lookup();
       if (last && last.ok && !last.pending) return last;
@@ -86,6 +94,9 @@
       var el = $(s);
       if (el) el.classList.toggle('is-hidden', s !== id);
     });
+    pickingEnabled = id === 'step-form';
+    var boardCard = $('board-card');
+    if (boardCard) boardCard.classList.toggle('is-picking', pickingEnabled);
   }
 
   function setError(msg) {
@@ -98,6 +109,7 @@
   function saveLocal(pedido) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(pedido));
+      localStorage.setItem(PICKS_KEY, JSON.stringify(selectedList()));
     } catch (e) {}
   }
 
@@ -110,20 +122,44 @@
     }
   }
 
+  function loadPicks() {
+    try {
+      var raw = localStorage.getItem(PICKS_KEY);
+      var arr = raw ? JSON.parse(raw) : [];
+      selected = {};
+      (arr || []).forEach(function (n) { selected[n] = true; });
+    } catch (e) {
+      selected = {};
+    }
+  }
+
   function clearLocal() {
-    try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(PICKS_KEY);
+    } catch (e) {}
+    selected = {};
   }
 
   function updateTotal() {
-    var q = parseInt($('quantidade').value, 10) || 0;
+    var list = selectedList();
+    var q = list.length;
     $('total-valor').textContent = money(q * PRECO);
+    $('qtd-escolhida').textContent = String(q);
+    $('escolhidos-texto').textContent = q ? list.join(', ') : 'nenhum ainda';
+    var btn = $('btn-gerar');
+    if (btn) btn.disabled = q < 1;
   }
 
-  function renderBoard(vendidos, meus) {
+  function renderBoard(vendidos, reservados, meus) {
     var board = $('rifa-board');
     if (!board) return;
+    lastStatus.vendidosLista = vendidos || lastStatus.vendidosLista || [];
+    lastStatus.reservadosLista = reservados || lastStatus.reservadosLista || [];
     var sold = {};
-    (vendidos || []).forEach(function (n) { sold[n] = true; });
+    lastStatus.vendidosLista.forEach(function (n) { sold[n] = true; });
+    var held = {};
+    lastStatus.reservadosLista.forEach(function (n) { held[n] = true; });
     var mine = {};
     (meus || []).forEach(function (n) { mine[n] = true; });
     var html = '';
@@ -131,9 +167,29 @@
       var cls = 'rifa-num';
       if (mine[n]) cls += ' is-mine';
       else if (sold[n]) cls += ' is-sold';
-      html += '<span class="' + cls + '">' + n + '</span>';
+      else if (held[n] && !selected[n]) cls += ' is-reserved';
+      else if (selected[n]) cls += ' is-picked';
+      html += '<button type="button" class="' + cls + '" data-n="' + n + '"' +
+        ((sold[n] || (held[n] && !selected[n]) || mine[n] || !pickingEnabled) ? ' disabled' : '') +
+        '>' + n + '</button>';
     }
     board.innerHTML = html;
+  }
+
+  function togglePick(n) {
+    if (!pickingEnabled) return;
+    if (selected[n]) {
+      delete selected[n];
+    } else {
+      if (selectedList().length >= MAX) {
+        setError('Máximo de ' + MAX + ' números por vez.');
+        return;
+      }
+      setError('');
+      selected[n] = true;
+    }
+    updateTotal();
+    renderBoard(lastStatus.vendidosLista, lastStatus.reservadosLista, []);
   }
 
   function renderQr(payload) {
@@ -156,23 +212,37 @@
     return status;
   }
 
+  function escolhidosLabel() {
+    var list = selectedList();
+    return list.length ? list.join(', ') : '—';
+  }
+
   function renderPedido(pedido, statusInfo) {
     if (!pedido) return;
     saveLocal(pedido);
+    selectedList().forEach(function (n) {
+      if (lastStatus.reservadosLista.indexOf(n) === -1) lastStatus.reservadosLista.push(n);
+    });
     $('pedido-id').textContent = pedido.id;
     $('pedido-valor').textContent = money(pedido.valor);
     $('pedido-status').textContent = statusLabel(pedido.status);
     $('pix-copia').value = pedido.pixPayload || '';
+    $('pedido-escolhidos').textContent = escolhidosLabel();
 
     if (pedido.status === 'pago') {
-      $('numeros-finais').textContent = pedido.numerosTexto || pedido.numeros.join(', ');
+      $('numeros-finais').textContent = pedido.numerosTexto || pedido.numeros.join(', ') || escolhidosLabel();
       show('step-done');
-      renderBoard(statusInfo && statusInfo.vendidosLista, pedido.numeros);
+      renderBoard(
+        statusInfo && statusInfo.vendidosLista,
+        statusInfo && statusInfo.reservadosLista,
+        pedido.numeros && pedido.numeros.length ? pedido.numeros : selectedList()
+      );
       stopPoll();
       return;
     }
     if (pedido.status === 'aguardando_aprovacao') {
       show('step-wait');
+      renderBoard(lastStatus.vendidosLista, lastStatus.reservadosLista, []);
       startPoll(pedido.id);
       return;
     }
@@ -180,10 +250,12 @@
       setError(statusLabel(pedido.status));
       clearLocal();
       show('step-form');
+      loadStatus().catch(function () {});
       stopPoll();
       return;
     }
     show('step-pay');
+    renderBoard(lastStatus.vendidosLista, lastStatus.reservadosLista, []);
     if (pedido.pixPayload) renderQr(pedido.pixPayload);
     startPoll(pedido.id);
   }
@@ -200,7 +272,7 @@
     pollTimer = setInterval(function () {
       jsonp({ action: 'consultar', pedidoId: pedidoId }).then(function (res) {
         if (res && res.ok && res.pedido) {
-          if (res.pedido.status !== 'pendente') renderPedido(res.pedido);
+          if (res.pedido.status !== 'pendente') renderPedido(res.pedido, lastStatus);
         }
       }).catch(function () {});
     }, 8000);
@@ -211,11 +283,12 @@
     if (!res || !res.ok) throw new Error((res && res.error) || 'Falha ao carregar a rifa.');
     PRECO = res.preco || PRECO;
     MAX = res.maxPorPedido || MAX;
-    $('quantidade').max = MAX;
     $('stat-vendidos').textContent = res.vendidos;
     $('stat-disponiveis').textContent = res.disponiveis;
     $('stat-preco').textContent = money(PRECO);
-    renderBoard(res.vendidosLista, []);
+    lastStatus = res;
+    renderBoard(res.vendidosLista, res.reservadosLista, pickingEnabled ? [] : selectedList());
+    updateTotal();
     return res;
   }
 
@@ -223,23 +296,24 @@
     ev.preventDefault();
     setError('');
     var nome = $('nome').value.trim();
-    var quantidade = parseInt($('quantidade').value, 10);
+    var numeros = selectedList();
     if (nome.length < 2) return setError('Informe seu nome.');
-    if (!quantidade || quantidade < 1) return setError('Informe a quantidade.');
+    if (!numeros.length) return setError('Clique nos números que quer na grade.');
     $('btn-gerar').disabled = true;
     $('btn-gerar').textContent = 'Reservando números...';
     try {
       var requestId = uuid();
       var res = await postAndWait(
-        { action: 'criarPedido', nome: nome, quantidade: quantidade, requestId: requestId },
+        { action: 'criarPedido', nome: nome, numeros: numeros, quantidade: numeros.length, requestId: requestId },
         function () { return jsonp({ action: 'consultarRequest', requestId: requestId }); }
       );
       if (!res.ok || !res.pedido) throw new Error((res && res.error) || 'Não deu para reservar.');
-      renderPedido(res.pedido);
+      renderPedido(res.pedido, lastStatus);
     } catch (err) {
       setError(err.message || 'Erro ao criar pedido.');
+      loadStatus().catch(function () {});
     } finally {
-      $('btn-gerar').disabled = false;
+      $('btn-gerar').disabled = selectedList().length < 1;
       $('btn-gerar').textContent = 'Gerar pagamento';
     }
   }
@@ -251,18 +325,43 @@
       reader.onload = function () {
         var img = new Image();
         img.onload = function () {
-          var max = 1200;
+          var max = 900;
           var w = img.width;
           var h = img.height;
-          if (w > max) {
-            h = Math.round(h * max / w);
-            w = max;
+          if (w > max || h > max) {
+            if (w >= h) {
+              h = Math.round(h * max / w);
+              w = max;
+            } else {
+              w = Math.round(w * max / h);
+              h = max;
+            }
           }
           var canvas = document.createElement('canvas');
-          canvas.width = w;
-          canvas.height = h;
-          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          resolve(canvas.toDataURL('image/jpeg', 0.72));
+          var ctx = canvas.getContext('2d');
+          function encode() {
+            canvas.width = w;
+            canvas.height = h;
+            ctx.drawImage(img, 0, 0, w, h);
+            var q = 0.7;
+            var dataUrl = canvas.toDataURL('image/jpeg', q);
+            while (dataUrl.length > 45000 && q > 0.25) {
+              q -= 0.1;
+              dataUrl = canvas.toDataURL('image/jpeg', q);
+            }
+            return dataUrl;
+          }
+          var dataUrl = encode();
+          while (dataUrl.length > 45000 && (w > 240 || h > 240)) {
+            w = Math.round(w * 0.75);
+            h = Math.round(h * 0.75);
+            dataUrl = encode();
+          }
+          if (dataUrl.length > 45000) {
+            reject(new Error('Foto grande demais. Envie um print da tela do PIX.'));
+            return;
+          }
+          resolve(dataUrl);
         };
         img.onerror = function () { reject(new Error('Imagem inválida.')); };
         img.src = reader.result;
@@ -292,7 +391,7 @@
         }
       );
       if (!res.ok || !res.pedido) throw new Error((res && res.error) || 'Falha ao enviar.');
-      renderPedido(res.pedido);
+      renderPedido(res.pedido, lastStatus);
     } catch (err) {
       setError(err.message || 'Erro ao enviar comprovante.');
     } finally {
@@ -305,10 +404,10 @@
     var el = $('pix-copia');
     el.select();
     el.setSelectionRange(0, 99999);
-    var ok = false;
-    try { ok = document.execCommand('copy'); } catch (e) {}
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(el.value).then(function () { ok = true; }).catch(function () {});
+      navigator.clipboard.writeText(el.value).catch(function () {});
+    } else {
+      try { document.execCommand('copy'); } catch (e) {}
     }
     $('btn-copiar').textContent = 'Copiado!';
     setTimeout(function () { $('btn-copiar').textContent = 'Copiar código PIX'; }, 2000);
@@ -319,17 +418,27 @@
     stopPoll();
     setError('');
     show('step-form');
+    updateTotal();
     loadStatus().catch(function () {});
   }
 
   async function init() {
-    $('quantidade').addEventListener('input', updateTotal);
     $('form-rifa').addEventListener('submit', criarPedido);
     $('btn-copiar').addEventListener('click', copyPix);
     $('btn-comprovante').addEventListener('click', enviarComprovante);
     $('btn-novo').addEventListener('click', novoPedido);
     $('btn-novo-2').addEventListener('click', novoPedido);
-    updateTotal();
+    $('btn-limpar').addEventListener('click', function () {
+      selected = {};
+      setError('');
+      updateTotal();
+      renderBoard(lastStatus.vendidosLista, lastStatus.reservadosLista, []);
+    });
+    $('rifa-board').addEventListener('click', function (ev) {
+      var btn = ev.target.closest('.rifa-num');
+      if (!btn || btn.disabled) return;
+      togglePick(Number(btn.getAttribute('data-n')));
+    });
 
     if (!configured()) {
       show('step-setup');
@@ -337,6 +446,7 @@
     }
 
     try {
+      loadPicks();
       var status = await loadStatus();
       var local = loadLocal();
       if (local && local.id) {
@@ -346,8 +456,12 @@
           return;
         }
         clearLocal();
+        show('step-form');
+        await loadStatus();
+        return;
       }
       show('step-form');
+      updateTotal();
     } catch (err) {
       setError(err.message);
       show('step-form');

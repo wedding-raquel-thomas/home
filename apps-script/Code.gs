@@ -33,7 +33,6 @@ function getSpreadsheet() {
 var SHEET_NUMEROS = 'numeros';
 var SHEET_PEDIDOS = 'pedidos';
 var SHEET_RESPOSTAS = 'respostas';
-var FOLDER_NAME = 'Rifa Comprovantes';
 
 function setupRifa() {
   var ss = getSpreadsheet();
@@ -184,6 +183,7 @@ function actionStatus() {
   var reservados = 0;
   var disponiveis = 0;
   var vendidosLista = [];
+  var reservadosLista = [];
   for (var i = 1; i < numData.length; i++) {
     var status = numData[i][1];
     var numero = Number(numData[i][0]);
@@ -192,6 +192,7 @@ function actionStatus() {
       vendidosLista.push(numero);
     } else if (status === 'reservado') {
       reservados++;
+      reservadosLista.push(numero);
     } else {
       disponiveis++;
     }
@@ -205,18 +206,38 @@ function actionStatus() {
     vendidos: vendidos,
     reservados: reservados,
     disponiveis: disponiveis,
-    vendidosLista: vendidosLista
+    vendidosLista: vendidosLista,
+    reservadosLista: reservadosLista
   };
+}
+
+function parseNumerosEscolhidos_(raw) {
+  var arr = [];
+  if (Array.isArray(raw)) arr = raw;
+  else if (raw != null && String(raw).trim() !== '') arr = String(raw).split(',');
+  var seen = {};
+  var out = [];
+  for (var i = 0; i < arr.length; i++) {
+    var n = parseInt(String(arr[i]).trim(), 10);
+    if (!n || n < 1 || n > CONFIG.TOTAL_NUMEROS || seen[n]) continue;
+    seen[n] = true;
+    out.push(n);
+  }
+  out.sort(function (a, b) { return a - b; });
+  return out;
 }
 
 function actionCriarPedido(data) {
   var nome = String(data.nome || '').trim();
-  var quantidade = parseInt(data.quantidade, 10);
   var requestId = String(data.requestId || '').trim();
+  var escolhidos = parseNumerosEscolhidos_(data.numeros);
+  var quantidade = escolhidos.length || parseInt(data.quantidade, 10);
 
   if (nome.length < 2) return saveResposta_(requestId, { ok: false, error: 'Informe seu nome.' });
-  if (!quantidade || quantidade < 1) return saveResposta_(requestId, { ok: false, error: 'Informe quantos números quer.' });
-  if (quantidade > CONFIG.MAX_POR_PEDIDO) {
+  if (!escolhidos.length) {
+    return saveResposta_(requestId, { ok: false, error: 'Escolha os números na grade.' });
+  }
+  if (escolhidos.length > CONFIG.MAX_POR_PEDIDO) {
     return saveResposta_(requestId, { ok: false, error: 'Máximo de ' + CONFIG.MAX_POR_PEDIDO + ' números por vez.' });
   }
   if (!requestId) return { ok: false, error: 'Pedido inválido. Recarregue a página.' };
@@ -226,11 +247,12 @@ function actionCriarPedido(data) {
   var cached = readResposta_(requestId);
   if (cached) return cached;
 
-  var picked = pickAvailableNumbers(quantidade);
-  if (!picked) {
-    return saveResposta_(requestId, { ok: false, error: 'Não há números suficientes disponíveis.' });
+  var picked = reserveChosenNumbers_(escolhidos);
+  if (picked.error) {
+    return saveResposta_(requestId, { ok: false, error: picked.error });
   }
 
+  quantidade = picked.numeros.length;
   var pedidoId = Utilities.getUuid().replace(/-/g, '').substring(0, 8).toUpperCase();
   var valor = quantidade * CONFIG.PRECO;
   var txid = ('RIFA' + pedidoId).substring(0, 25);
@@ -263,28 +285,25 @@ function actionCriarPedido(data) {
   return saveResposta_(requestId, result);
 }
 
-function pickAvailableNumbers(quantidade) {
+function reserveChosenNumbers_(escolhidos) {
   var sheets = getSheets();
   var data = sheets.numeros.getDataRange().getValues();
-  var available = [];
+  var byNumero = {};
   for (var i = 1; i < data.length; i++) {
-    if (data[i][1] === 'disponivel') {
-      available.push({ row: i + 1, numero: Number(data[i][0]) });
-    }
+    byNumero[Number(data[i][0])] = { row: i + 1, status: String(data[i][1]) };
   }
-  if (available.length < quantidade) return null;
-  for (var j = available.length - 1; j > 0; j--) {
-    var k = Math.floor(Math.random() * (j + 1));
-    var tmp = available[j];
-    available[j] = available[k];
-    available[k] = tmp;
+  var ocupados = [];
+  var rows = [];
+  for (var j = 0; j < escolhidos.length; j++) {
+    var n = escolhidos[j];
+    var cell = byNumero[n];
+    if (!cell || cell.status !== 'disponivel') ocupados.push(n);
+    else rows.push(cell.row);
   }
-  var chosen = available.slice(0, quantidade);
-  chosen.sort(function (a, b) { return a.numero - b.numero; });
-  return {
-    numeros: chosen.map(function (c) { return c.numero; }),
-    rows: chosen.map(function (c) { return c.row; })
-  };
+  if (ocupados.length) {
+    return { error: 'Estes números não estão mais livres: ' + ocupados.join(', ') + '. Escolha outros.' };
+  }
+  return { numeros: escolhidos, rows: rows };
 }
 
 function actionConsultar(pedidoId) {
@@ -335,41 +354,17 @@ function actionEnviarComprovante(data) {
   if (found.status === 'expirado' || found.status === 'cancelado') {
     return { ok: false, error: 'Este pedido expirou. Faça um novo.' };
   }
-  if (!dataUrl || dataUrl.indexOf('base64,') === -1) {
+  if (!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=\s]+$/.test(dataUrl)) {
     return { ok: false, error: 'Envie a foto do comprovante.' };
   }
+  if (dataUrl.length > 49000) {
+    return { ok: false, error: 'Foto grande demais. Envie um print da tela do PIX.' };
+  }
 
-  var url = saveComprovante_(pedidoId, dataUrl);
-  sheets.pedidos.getRange(found.row, 8).setValue(url);
+  sheets.pedidos.getRange(found.row, 8).setValue(dataUrl);
   sheets.pedidos.getRange(found.row, 7).setValue('aguardando_aprovacao');
   var pedido = findPedidoById(pedidoId);
   return { ok: true, pedido: publicPedido_(pedido) };
-}
-
-function saveComprovante_(pedidoId, dataUrl) {
-  var parts = dataUrl.split('base64,');
-  var mime = 'image/jpeg';
-  var header = parts[0] || '';
-  if (header.indexOf('image/png') !== -1) mime = 'image/png';
-  if (header.indexOf('image/webp') !== -1) mime = 'image/webp';
-  var blob = Utilities.newBlob(Utilities.base64Decode(parts[1]), mime, 'comprovante-' + pedidoId + '.jpg');
-  var folder = getComprovantesFolder_();
-  var file = folder.createFile(blob);
-  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  return 'https://drive.google.com/file/d/' + file.getId() + '/view';
-}
-
-function getComprovantesFolder_() {
-  var props = PropertiesService.getScriptProperties();
-  var folderId = props.getProperty('COMPROVANTES_FOLDER_ID');
-  if (folderId) {
-    try {
-      return DriveApp.getFolderById(folderId);
-    } catch (err) {}
-  }
-  var folder = DriveApp.createFolder(FOLDER_NAME);
-  props.setProperty('COMPROVANTES_FOLDER_ID', folder.getId());
-  return folder;
 }
 
 function requireAdmin_(senha) {
@@ -515,6 +510,7 @@ function publicPedido_(pedido) {
   copy.numeros = [];
   copy.numerosTexto = '';
   copy.mostraNumeros = false;
+  copy.comprovanteUrl = pedido.comprovanteUrl ? 'enviado' : '';
   return copy;
 }
 
